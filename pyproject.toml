@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drone-detection-rf-2026"
+version = "0.0.0"
+description = "TDoA-based drone detection utilities and simulation"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "matplotlib"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tdoa", "localization", "simulation", "utils", "sp_ml", "*"]
