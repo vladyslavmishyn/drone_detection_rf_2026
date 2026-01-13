@@ -1,6 +1,6 @@
 # Drone Detection RF 2026
 
-RF-based drone detection and localization system using Time Difference of Arrival (TDoA) analysis and machine learning classification.
+RF-based drone detection and localization system using Time Difference of Arrival (TDoA) analysis and machine learning classification for Build for Ukraine MIT class.
 
 ## Overview
 
@@ -10,7 +10,7 @@ This project provides tools for detecting and localizing drones through analysis
 
 ```
 drone_detection_rf_2026/
-├── src/                          # Main source code package
+├── src/                          
 │   ├── core/                     # Core algorithms and utilities
 │   │   ├── tdoa.py              # TDoA localization solver implementation
 │   │   └── utils.py             # Signal processing and visualization utilities
@@ -18,7 +18,7 @@ drone_detection_rf_2026/
 │   └── hardware/                 # Hardware integration and receiver node software
 ├── simulation/                   # Simulation and testing environment
 │   ├── tdoa_sim.py              # Main TDoA simulation script
-│   └── scenarios.py             # Test scenarios and configurations
+│   └── scenarios.py             
 ├── scripts/                      # Executable scripts for common workflows
 │   ├── run_tdoa_sim.py          # Script to execute TDoA simulations
 │   ├── train_model.py           # Script for training ML models
@@ -26,7 +26,7 @@ drone_detection_rf_2026/
 ├── tests/                        # Unit tests and validation
 │   └── test_core.py             # Tests for core algorithms
 ├── data/                         # Datasets and data processing
-│   └── drone_dataset_npz/       # Processed RF signal datasets (NPZ format)
+│   └── drone_dataset_npz/       
 ├── models/                       # Trained model artifacts and checkpoints
 ├── docs/                         # Documentation
 │   ├── architecture.md          # System architecture documentation
@@ -43,7 +43,6 @@ drone_detection_rf_2026/
 
 - **`simulation/`**: Environment for testing and validating algorithms
   - Contains simulation scripts that can run without hardware
-  - Useful for development, debugging, and algorithm validation
 
 - **`scripts/`**: Entry points for common operations
   - Provides convenient command-line interfaces to key functionality
@@ -51,15 +50,11 @@ drone_detection_rf_2026/
 
 - **`tests/`**: Unit tests ensuring code correctness
   - Validates core algorithms with known inputs/outputs
-  - Should be run after any code changes
 
 - **`data/`**: Datasets used for training and testing
-  - Contains processed RF signal data in NPZ format
-  - Includes preprocessing notebooks and documentation
 
 - **`models/`**: Storage for trained machine learning models
   - Contains serialized model files and training artifacts
-  - Used by deployment scripts
 
 - **`docs/`**: Documentation beyond this README
   - Architecture decisions, hardware setup guides, etc.
@@ -165,8 +160,6 @@ python simulation/scenarios.py
 
 - All imports should use absolute paths from the repository root
 - Scripts in `scripts/` handle path setup automatically
-- For development work, ensure the virtual environment is activated
-- Run tests frequently to catch regressions
 
 ### Key Modules
 
