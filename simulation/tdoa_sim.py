@@ -1,4 +1,4 @@
-"""Simple runnable TDoA simulation that reuses solve_tdoa_pairwise from tdoa/core.py.
+"""TDoA simulation that reuses solve_tdoa_pairwise from tdoa/core.py.
 
 Can be run as:
   python -m tdoa.simulation
