@@ -107,7 +107,7 @@ python scripts/run_tdoa_sim.py
 This will:
 - Generate a synthetic drone position
 - Simulate RF signals received at multiple nodes
-- Compute TDoA measurements with realistic noise
+- Compute TDoA measurements with synthetic noise
 - Solve for position using least-squares optimization
 - Display visualization of hyperbolas and estimated position
 
