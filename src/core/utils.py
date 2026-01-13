@@ -1,10 +1,4 @@
-"""Small utilities for TDoA simulation.
-
-Functions provided:
-- generate_pairwise_tdoa: build (i, j, dt_seconds) pairs from geometry + Gaussian noise
-- hyperbola_points_2d: sample points approximating the hyperbola (difference-of-distances locus)
-- generate_signal: deterministic complex baseband tone generator
-"""
+"""Utilities for TDoA simulation and signal processing."""
 from typing import Iterable, List, Optional, Sequence, Tuple
 import numpy as np
 
@@ -17,16 +11,18 @@ def generate_pairwise_tdoa(
     sigma_t: float = 0.0,
     seed: Optional[int] = None,
 ) -> List[Tuple[int, int, float]]:
-    """Generate pairwise TDoA (i, j, dt_seconds) entries.
+    """Generate pairwise TDoA measurements with optional noise.
 
-    - nodes: (N,2) array of anchor positions (meters)
-    - tx_pos: (2,) transmitter position (meters)
-    - pairs: optional iterable of (i,j); if None, uses all i<j
-    - c: speed of propagation (m/s)
-    - sigma_t: standard deviation of additive Gaussian noise on dt (seconds)
-    - seed: RNG seed
+    Args:
+        nodes: (N,2) array of receiver positions (meters)
+        tx_pos: (2,) transmitter position (meters)
+        pairs: optional iterable of (i,j) indices; if None, uses all i<j pairs
+        c: speed of propagation (m/s, default 3e8)
+        sigma_t: standard deviation of additive Gaussian noise on dt (seconds)
+        seed: RNG seed for reproducibility
 
-    Returns list of tuples (i, j, dt_seconds) where dt = toa_i - toa_j (seconds).
+    Returns:
+        list of tuples (i, j, dt_seconds) where dt = toa[i] - toa[j]
     """
     nodes = np.asarray(nodes, dtype=float)
     tx_pos = np.asarray(tx_pos, dtype=float)
@@ -53,15 +49,17 @@ def get_bounds_from_nodes(
     margin: float = 0.6,
     min_margin: float = 5.0,
 ) -> Tuple[float, float, float, float]:
-    """Compute plotting bounds that include node coordinates and optional extra points.
+    """Compute plotting bounds that include nodes and extra points.
 
     Args:
-        nodes: (N,2) array of anchor positions.
-        extra_points: optional sequence of (2,) arrays to include (e.g., true/est positions).
-        margin: fraction of span to add as margin.
-        min_margin: minimum margin in metres.
+        nodes: (N,2) array of receiver positions
+        extra_points: optional sequence of (2,) arrays (e.g., 
+        true/estimated positions)
+        margin: fraction of span to add as margin
+        min_margin: minimum margin in meters
 
-    Returns (xmin, xmax, ymin, ymax).
+    Returns:
+        (xmin, xmax, ymin, ymax) tuple
     """
     nodes = np.asarray(nodes, dtype=float)
     pts = [nodes]
@@ -74,7 +72,6 @@ def get_bounds_from_nodes(
     maxs = all_pts.max(axis=0)
     span = maxs - mins
 
-    # If span is very small (all points near each other), ensure a reasonable view.
     m = np.maximum(span * float(margin), float(min_margin))
     xmin, ymin = mins - m
     xmax, ymax = maxs + m
@@ -90,8 +87,19 @@ def hyperbola_field_2d(
     ylim: Tuple[float, float] = (-30.0, 30.0),
     grid: int = 600,
 ):
-    """Return meshgrid (X, Y, Z) for the hyperbola implicit field:
-    Z(x,y) = ||(x,y)-ni|| - ||(x,y)-nj|| - c*dt
+    """Generate hyperbola implicit field meshgrid.
+
+    The field represents: Z(x,y) = ||(x,y)-ni|| - ||(x,y)-nj|| - c*dt
+
+    Args:
+        ni, nj: (2,) receiver positions
+        dt: time difference (seconds)
+        c: speed of propagation (m/s)
+        xlim, ylim: plot axis limits
+        grid: grid resolution
+
+    Returns:
+        (X, Y, Z) meshgrids
     """
     ni = np.asarray(ni, dtype=float)
     nj = np.asarray(nj, dtype=float)
@@ -118,24 +126,39 @@ def plot_hyperbola_2d(
     grid: int = 600,
     alpha: float = 0.35,
 ):
-    """Plot hyperbola on the provided Axes using a zero contour of the implicit field.
+    """Plot hyperbola on matplotlib axes as zero contour.
 
-    Returns the matplotlib QuadContourSet.
+    Args:
+        ax: matplotlib Axes object
+        ni, nj: (2,) receiver positions
+        dt: time difference (seconds)
+        c: speed of propagation (m/s)
+        xlim, ylim: plot axis limits
+        grid: grid resolution
+        alpha: contour line transparency
+
+    Returns:
+        matplotlib QuadContourSet
     """
-    X, Y, Z = hyperbola_field_2d(ni, nj, dt, c=c, xlim=xlim, ylim=ylim, grid=grid)
-    cs = ax.contour(X, Y, Z, levels=[0.0], linewidths=1.0, alpha=float(alpha), colors="red")
+    X, Y, Z = hyperbola_field_2d(ni, nj, dt, c=c, xlim=xlim, ylim=ylim, 
+                                 grid=grid)
+    cs = ax.contour(X, Y, Z, levels=[0.0], linewidths=1.0, alpha=float(alpha), 
+                    colors="red")
     return cs
 
 
-def generate_signal(fs: float, duration: float, f0: float, phase: float = 0.0) -> np.ndarray:
-    """Minimal complex baseband tone generator.
+def generate_signal(fs: float, duration: float, 
+                    f0: float, phase: float = 0.0) -> np.ndarray:
+    """Generate complex baseband sinusoid.
 
-    - fs: sample rate (Hz)
-    - duration: seconds
-    - f0: tone frequency (Hz)
-    - phase: radians
+    Args:
+        fs: sample rate (Hz)
+        duration: signal duration (seconds)
+        f0: tone frequency (Hz)
+        phase: initial phase (radians)
 
-    Returns complex numpy array of length int(fs*duration).
+    Returns:
+        complex64 numpy array of length int(fs*duration)
     """
     t = np.arange(int(np.round(fs * duration))) / float(fs)
     sig = np.exp(2j * np.pi * float(f0) * t + 1j * float(phase))
