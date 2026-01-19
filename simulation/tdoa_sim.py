@@ -9,7 +9,7 @@ from src.core import (
     solve_tdoa_pairwise,
     generate_pairwise_tdoa,
     plot_hyperbola_2d,
-    get_bounds_from_nodes,
+    get_bounds,
 )
 
 
@@ -44,7 +44,7 @@ def plot_scene(
     if show_hyperbolas:
         # compute bounds from nodes and include the true and estimated 
         # positions
-        xmin, xmax, ymin, ymax = get_bounds_from_nodes(
+        xmin, xmax, ymin, ymax = get_bounds(
             nodes, extra_points=(true_pos, est_pos))
 
         # set plot limits explicitly and add a rectangular grid (mesh)

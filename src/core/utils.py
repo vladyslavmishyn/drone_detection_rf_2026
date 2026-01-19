@@ -1,6 +1,34 @@
 """Utilities for TDoA simulation and signal processing."""
+from __future__ import annotations
+
 from typing import Iterable, List, Optional, Sequence, Tuple
+
 import numpy as np
+import geopandas as gpd
+from shapely.geometry import Point
+
+
+def match_fig_aspect(xmin: float, xmax: float, ymin: float, ymax: float, fig_w: float, fig_h: float) -> Tuple[float, float, float, float]:
+    """Expand bounds so the data aspect matches the figure aspect ratio."""
+    dx = xmax - xmin
+    dy = ymax - ymin
+    target = fig_w / fig_h
+    current = dx / dy
+
+    if current < target:
+        # too narrow, widen x
+        new_dx = dy * target
+        extra = (new_dx - dx) / 2.0
+        xmin -= extra
+        xmax += extra
+    else:
+        # too wide, increase y
+        new_dy = dx / target
+        extra = (new_dy - dy) / 2.0
+        ymin -= extra
+        ymax += extra
+
+    return float(xmin), float(xmax), float(ymin), float(ymax)
 
 
 def generate_pairwise_tdoa(
@@ -43,7 +71,7 @@ def generate_pairwise_tdoa(
     return out
 
 
-def get_bounds_from_nodes(
+def get_bounds(
     nodes: np.ndarray,
     extra_points: Optional[Sequence[np.ndarray]] = None,
     margin: float = 0.6,
@@ -54,7 +82,7 @@ def get_bounds_from_nodes(
     Args:
         nodes: (N,2) array of receiver positions
         extra_points: optional sequence of (2,) arrays (e.g., 
-        true/estimated positions)
+        true/estimated positions, drones)
         margin: fraction of span to add as margin
         min_margin: minimum margin in meters
 
@@ -147,19 +175,36 @@ def plot_hyperbola_2d(
     return cs
 
 
-def generate_signal(fs: float, duration: float, 
-                    f0: float, phase: float = 0.0) -> np.ndarray:
-    """Generate complex baseband sinusoid.
-
+def lonlat_to_xy_m(lonlat_deg: np.ndarray) -> np.ndarray:
+    """Convert (lon, lat) degrees to (x, y) meters using EPSG:3857.
+    
     Args:
-        fs: sample rate (Hz)
-        duration: signal duration (seconds)
-        f0: tone frequency (Hz)
-        phase: initial phase (radians)
-
+        lonlat_deg: (N, 2) array or (2,) array of [lon, lat] coordinates
+        
     Returns:
-        complex64 numpy array of length int(fs*duration)
+        (N, 2) array of [x, y] positions in meters (EPSG:3857)
     """
-    t = np.arange(int(np.round(fs * duration))) / float(fs)
-    sig = np.exp(2j * np.pi * float(f0) * t + 1j * float(phase))
-    return sig.astype(np.complex64)
+    lonlat_deg = np.asarray(lonlat_deg, dtype=np.float64)
+    if lonlat_deg.ndim == 1:
+        lonlat_deg = lonlat_deg.reshape(1, 2)
+    pts = [Point(float(lon), float(lat)) for lon, lat in lonlat_deg]
+    g = gpd.GeoSeries(pts, crs="EPSG:4326").to_crs(epsg=3857)
+    return np.array([(float(p.x), float(p.y)) for p in g], dtype=np.float64)
+
+
+def xy_m_to_lonlat(xy_m: np.ndarray) -> np.ndarray:
+    """Convert (x, y) meters (EPSG:3857) to (lon, lat) degrees.
+    
+    Args:
+        xy_m: (N, 2) array or (2,) array of [x, y] positions in meters
+        
+    Returns:
+        (N, 2) array of [lon, lat] coordinates in degrees (EPSG:4326)
+    """
+    xy_m = np.asarray(xy_m, dtype=np.float64)
+    if xy_m.ndim == 1:
+        xy_m = xy_m.reshape(1, 2)
+    pts = [Point(float(x), float(y)) for x, y in xy_m]
+    g = gpd.GeoSeries(pts, crs="EPSG:3857").to_crs(epsg=4326)
+    return np.array([(float(p.x), float(p.y)) for p in g], dtype=np.float64)
+

@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 from typing import Optional, Tuple
 import contextily as cx
 
-from tdoa_sim import all_pairs
-
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from simulation.tdoa_sim import all_pairs
 from src.core import (
     generate_pairwise_tdoa,
     plot_hyperbola_2d,
-    get_bounds_from_nodes,
+    get_bounds,
 )
 
 """
@@ -77,7 +77,7 @@ def plot_map(receivers_coords):
         ax.text(p.x + 80, p.y + 80, f"N{k}")
 
     xy = np.array([(p.x, p.y) for p in gdf.geometry], dtype=float)
-    xmin, xmax, ymin, ymax = get_bounds_from_nodes(xy)
+    xmin, xmax, ymin, ymax = get_bounds(xy)
     xmin, xmax, ymin, ymax = match_fig_aspect(
         xmin, xmax, ymin, ymax,
         fig.get_figwidth(), fig.get_figheight()
@@ -90,7 +90,6 @@ def plot_map(receivers_coords):
     cx.add_basemap(ax, source=cx.providers.OpenStreetMap.Mapnik, reset_extent=False)
 
     ax.set_axis_off()
-    plt.show(block=False)
 
 
 def plot_drone(coordinates, drone_id, show_hyperbolas=True):
@@ -113,13 +112,16 @@ def plot_drone(coordinates, drone_id, show_hyperbolas=True):
 
     # create the drone if not exists
     if drone_id not in drones:
-        drones[drone_id] = ax.scatter([x], [y], marker="o", s=90, zorder=10)
+        drones[drone_id] = ax.scatter([x], [y], marker="*", s=300, c="red", 
+                                      edgecolors="black", linewidths=2, zorder=10)
         drone_labels[drone_id] = ax.text(
-            x + 100, y + 100,
+            x + 150, y + 150,
             str(drone_id),
             zorder=20,
-            fontsize=9,
+            fontsize=12,
             weight="bold",
+            color="red",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.8)
         )
         drones[drone_id]._hyperbolas = []  # store artists here
 
@@ -135,9 +137,6 @@ def plot_drone(coordinates, drone_id, show_hyperbolas=True):
             except Exception:
                 pass
         drones[drone_id]._hyperbolas.clear()
-
-        fig.canvas.draw_idle()
-        fig.canvas.flush_events()
         return
 
     
@@ -193,9 +192,6 @@ def plot_drone(coordinates, drone_id, show_hyperbolas=True):
                     drones[drone_id]._hyperbolas.extend(cs.collections)
             except Exception:
                 pass
-
-    fig.canvas.draw_idle()
-    fig.canvas.flush_events()
 
 
 def simulate_drone_updates():
