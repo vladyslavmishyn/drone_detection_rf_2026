@@ -1,0 +1,12 @@
+Sample Rate: 2000000 Hz
+Samples per Packet: 362
+Packets per File: 1440
+
+Receiver Positions:
+RX0  50.92200000  34.80000000
+RX1  50.92200000  34.81425036
+RX2  50.93098311  34.81425036
+RX3  50.93098311  34.80000000
+
+Transmitter Position:
+TX  50.92649156  34.76437409
